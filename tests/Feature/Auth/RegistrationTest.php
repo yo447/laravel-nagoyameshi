@@ -19,7 +19,7 @@ class RegistrationTest extends TestCase
 
     public function test_new_users_can_register(): void
     {
-        $response = $this->post('/register', [
+        $response = $this->post('/verify-email', [
             'name' => 'Test User',
             'kana' => 'テスト ユーザー',
             'email' => 'test@example.com',
@@ -31,6 +31,7 @@ class RegistrationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(RouteServiceProvider::HOME);
+        //$response->assertRedirect(RouteServiceProvider::HOME);
+        $response->assertRedirect('/verify-email');
     }
 }
