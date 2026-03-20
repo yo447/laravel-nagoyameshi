@@ -5,6 +5,7 @@ namespace Tests\Feature\Admin;
 use App\Models\User;
 use App\Models\Admin;
 use App\Models\Restaurant;
+use App\Models\Category;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -446,6 +447,9 @@ class RestaurantTest extends TestCase
 
     public function test_user_cannot_created_admin_store(){
 
+        $category = Category::factory()->count(3)->create();//->pluck('id')->toArray();
+        $category_ids = $category->pluck('id')->toArray();
+
         $data = [
             'name' => 'テスト',
             'description' => 'テスト',
@@ -456,11 +460,19 @@ class RestaurantTest extends TestCase
             'opening_time' => '10:00:00',
             'closing_time' => '20:00:00',
             'seating_capacity' => 50,
+            'category_ids' => $category_ids
         ];
 
         $response = $this->post(route('admin.restaurants.store'), $data);
 
+        unset($data['category_ids']);
+
         $this->assertDatabaseMissing('restaurants', $data);
+
+        foreach ($category_ids as $category_id) {
+            $this->assertDatabaseMissing('category_restaurant', ['category_id' => $category_id]);
+        }
+        
         $response->assertRedirect(route('admin.login'));
         
         
@@ -470,6 +482,8 @@ class RestaurantTest extends TestCase
 
         $user = User::factory()->create();
 
+        $category_ids = Category::factory()->count(3)->create()->pluck('id')->toArray();
+
         $data = [
             'name' => 'テスト',
             'description' => 'テスト',
@@ -480,11 +494,19 @@ class RestaurantTest extends TestCase
             'opening_time' => '10:00:00',
             'closing_time' => '20:00:00',
             'seating_capacity' => 50,
+            'category_ids' => $category_ids
         ];
 
         $response = $this->actingAs($user)->post(route('admin.restaurants.store'), $data);
 
+        unset($data['category_ids']);
+
         $this->assertDatabaseMissing('restaurants', $data);
+
+        foreach ($category_ids as $category_id) {
+            $this->assertDatabaseMissing('category_restaurant', ['category_id' => $category_id]);
+        }
+
         $response->assertRedirect(route('admin.login'));
     }
 
@@ -495,6 +517,10 @@ class RestaurantTest extends TestCase
         $admin->password = Hash::make('nagoyameshi');
         $admin->save();
 
+        $category_id = Category::factory()->count(3)->create();
+        $category_ids = $category_id->pluck('id')->toArray();
+
+
         $data = [
             'name' => 'テスト',
             'description' => 'テスト',
@@ -505,12 +531,23 @@ class RestaurantTest extends TestCase
             'opening_time' => '10:00:00',
             'closing_time' => '20:00:00',
             'seating_capacity' => 50,
+            'category_ids' => $category_ids
+
         ];
 
         $response = $this->actingAs($admin, 'admin')->post(route('admin.restaurants.store'), $data);
 
+        unset($data['category_ids']);
+
         $this->assertDatabaseHas('restaurants', $data);
+
+        $restaurant = Restaurant::latest('id')->first();
+        foreach ($category_ids as $category_id) {
+            $this->assertDatabaseHas('category_restaurant', ['restaurant_id' => $restaurant->id, 'category_id' => $category_id]);
+        }
+
         $response->assertRedirect(route('admin.restaurants.index'));
+        
     }
 
     
@@ -553,6 +590,9 @@ class RestaurantTest extends TestCase
 
         $restaurant = Restaurant::factory()->create();
 
+        $category_id = Category::factory()->count(3)->create();
+        $category_ids = $category_id->pluck('id')->toArray();
+
         $data = [
             'name' => 'テスト更新',
             'description' => 'テスト更新',
@@ -563,10 +603,18 @@ class RestaurantTest extends TestCase
             'opening_time' => '11:00:00',
             'closing_time' => '21:00:00',
             'seating_capacity' => 60,
+            'category_ids' => $category_ids,
         ];
 
         $response = $this->put(route('admin.restaurants.update', $restaurant), $data);
+
+        unset($data['category_ids']);
+
         $this->assertDatabaseMissing('restaurants', $data);
+
+        foreach ($category_ids as $category_id) {
+            $this->assertDatabaseMissing('category_restaurant', ['category_id' => $category_id]);
+        }
 
         $response->assertRedirect(route('admin.login'));
         
@@ -577,6 +625,9 @@ class RestaurantTest extends TestCase
         $user = User::factory()->create();
         $restaurant = Restaurant::factory()->create();
 
+        $category_id = Category::factory()->count(3)->create();
+        $category_ids = $category_id->pluck('id')->toArray();
+
         $data = [
             'name' => 'テスト更新',
             'description' => 'テスト更新',
@@ -587,10 +638,18 @@ class RestaurantTest extends TestCase
             'opening_time' => '11:00:00',
             'closing_time' => '21:00:00',
             'seating_capacity' => 60,
+            'category_ids' => $category_ids
         ];
 
         $response = $this->actingAs($user)->put(route('admin.restaurants.update', $restaurant), $data);
+
+        unset($data['category_ids']);
+
         $this->assertDatabaseMissing('restaurants', $data);
+
+        foreach ($category_ids as $category_id) {
+            $this->assertDatabaseMissing('category_restaurant', ['category_id' => $category_id]);
+        }
 
         $response->assertRedirect(route('admin.login'));
     }
@@ -604,6 +663,9 @@ class RestaurantTest extends TestCase
 
         $restaurant = Restaurant::factory()->create();
 
+        $category_id = Category::factory()->count(3)->create();
+        $category_ids = $category_id->pluck('id')->toArray();
+
         $data = [
             'name' => 'テスト更新',
             'description' => 'テスト更新',
@@ -614,11 +676,20 @@ class RestaurantTest extends TestCase
             'opening_time' => '11:00:00',
             'closing_time' => '21:00:00',
             'seating_capacity' => 60,
+            'category_ids' => $category_ids
         ];
 
         $response = $this->actingAs($admin, 'admin')->put(route('admin.restaurants.update', $restaurant), $data);
 
+        unset($data['category_ids']);
+
         $this->assertDatabaseHas('restaurants', $data);
+
+        $restaurant = Restaurant::latest('id')->first();
+
+        foreach ($category_ids as $category_id) {
+        $this->assertDatabaseHas('category_restaurant', ['restaurant_id' => $restaurant->id, 'category_id' => $category_id]);
+        }
 
         $response->assertRedirect(route('admin.restaurants.show', $restaurant));
     }
