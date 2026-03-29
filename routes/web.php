@@ -3,7 +3,7 @@
 //use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin;
-
+use App\Http\controllers\HomeController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -15,9 +15,6 @@ use App\Http\Controllers\Admin;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
 
 /*
 Route::get('/dashboard', function () {
@@ -45,6 +42,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => 'auth:admin
     Route::resource('company', Admin\CompanyController::class)->only(['index', 'edit', 'update']);
 
     Route::resource('terms', Admin\TermController::class)->only(['index', 'edit', 'update']);
+});
+
+Route::group(['middleware' => 'guest:admin'], function () {
+    Route::get('/', [HomeController::class, 'index'])->name('home');
 });
 
 
